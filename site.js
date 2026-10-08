@@ -1,11 +1,10 @@
 const list = document.querySelector("#repos");
 const skip = new Set(["Wangsmmg", "Wangsmmg.github.io"]);
-
 fetch("https://api.github.com/users/Wangsmmg/repos?per_page=100&sort=updated&type=owner")
   .then((response) => (response.ok ? response.json() : Promise.reject()))
   .then((repos) => {
     const shown = repos.filter((repo) => repo && !repo.fork && !skip.has(repo.name));
-    if (!shown.length) return;
+    if (!shown.length || !list) return;
     list.replaceChildren();
     for (const repo of shown.slice(0, 8)) {
       const item = document.createElement("li");
@@ -22,3 +21,17 @@ fetch("https://api.github.com/users/Wangsmmg/repos?per_page=100&sort=updated&typ
     }
   })
   .catch(() => {});
+const reveals = document.querySelectorAll(".reveal");
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduce || !("IntersectionObserver" in window)) {
+  reveals.forEach((node) => node.classList.add("in"));
+} else {
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add("in");
+      observer.unobserve(entry.target);
+    }
+  }, { threshold: 0.16 });
+  reveals.forEach((node) => observer.observe(node));
+}
